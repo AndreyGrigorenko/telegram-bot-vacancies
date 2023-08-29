@@ -1,8 +1,13 @@
 package ua.hryhorenko.telegrambotvacancies.dto;
 
+import com.opencsv.bean.CsvBindByName;
+
 public class VacancyDto {
+  @CsvBindByName(column = "Id")
   private String id;
+  @CsvBindByName(column = "Title")
   private String title;
+  @CsvBindByName(column = "Short description")
   private String shortDescription;
 
   public String getId() {

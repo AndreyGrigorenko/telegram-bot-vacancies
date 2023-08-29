@@ -1,6 +1,7 @@
 package ua.hryhorenko.telegrambotvacancies.service;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ua.hryhorenko.telegrambotvacancies.dto.VacancyDto;
 
@@ -11,31 +12,30 @@ import java.util.Map;
 
 @Service
 public class VacancyService {
+  @Autowired
+  private VacanciesReaderService vacanciesReaderService;
+
   private final Map<String, VacancyDto> vacancies = new HashMap<>();
 
   @PostConstruct
   public void init() {
-    VacancyDto juniorMaDeveloper = new VacancyDto();
-    juniorMaDeveloper.setId("1");
-    juniorMaDeveloper.setTitle("Junior dev at MA");
-    juniorMaDeveloper.setShortDescription("Java core is required!");
-    vacancies.put("1", juniorMaDeveloper);
+    List<VacancyDto> list = vacanciesReaderService.getVacanciesFromFile("vacancies.csv");
 
-    VacancyDto juniorGoogleDeveloper = new VacancyDto();
-    juniorGoogleDeveloper.setId("3");
-    juniorGoogleDeveloper.setTitle("Junior developer at Google");
-    juniorGoogleDeveloper.setShortDescription("Welcome!!!");
-    vacancies.put("3", juniorGoogleDeveloper);
-
-    VacancyDto middleMaDeveloper = new VacancyDto();
-    middleMaDeveloper.setId("2");
-    middleMaDeveloper.setTitle("Middle dev at MA");
-    middleMaDeveloper.setShortDescription("Join our company!!");
-    vacancies.put("2", middleMaDeveloper);
+    for (VacancyDto vacancy : list) {
+      vacancies.put(vacancy.getId(), vacancy);
+    }
   }
 
   public List<VacancyDto> getJuniorVacancies() {
     return vacancies.values().stream().filter(v -> v.getTitle().toLowerCase(Locale.ROOT).contains("junior")).toList();
+  }
+
+  public List<VacancyDto> getMiddleVacancies() {
+    return vacancies.values().stream().filter(v -> v.getTitle().toLowerCase(Locale.ROOT).contains("middle")).toList();
+  }
+
+  public List<VacancyDto> getSeniorVacancies() {
+    return vacancies.values().stream().filter(v -> v.getTitle().toLowerCase(Locale.ROOT).contains("senior")).toList();
   }
 
   public VacancyDto get(String id) {
