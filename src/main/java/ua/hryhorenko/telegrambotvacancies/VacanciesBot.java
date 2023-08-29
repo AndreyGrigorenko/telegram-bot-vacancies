@@ -13,12 +13,16 @@ import ua.hryhorenko.telegrambotvacancies.dto.VacancyDto;
 import ua.hryhorenko.telegrambotvacancies.service.VacancyService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class VacanciesBot extends TelegramLongPollingBot {
   @Autowired
   private VacancyService vacancyService;
+
+  private final Map<Long, String> lastShownVacancyLevel = new HashMap<>();
 
   public VacanciesBot() {
     super("6148636781:AAGABws8jqh8eSj21p4guKih147171EzGnc");
@@ -37,16 +41,33 @@ public class VacanciesBot extends TelegramLongPollingBot {
         if ("showJuniorVacancies".equals(callbackData)) {
           showJuniorVacancies(update);
         } else if ("showMiddleVacancies".equals(callbackData)) {
-          showMiddleVacancies(update);
+            showMiddleVacancies(update);
         } else if ("showSeniorVacancies".equals(callbackData)) {
-          showSeniorVacancies(update);
+            showSeniorVacancies(update);
         } else if (callbackData.startsWith("vacancyId=")) {
-          String id = callbackData.split("=")[1];
-          showVacancyDescription(id, update);
+            String id = callbackData.split("=")[1];
+            showVacancyDescription(id, update);
+        } else if ("backToVacancies".equals(callbackData)) {
+            handleBackToVacanciesCommand(update);
+        } else if ("backToStartMenu".equals(callbackData)) {
+
         }
       }
     } catch (Exception ex) {
         throw new RuntimeException("Can't sent message to user", ex);
+    }
+  }
+
+  private void handleBackToVacanciesCommand(Update update) throws TelegramApiException {
+    Long chatId = update.getCallbackQuery().getMessage().getChatId();
+    String level = lastShownVacancyLevel.get(chatId);
+
+    if ("junior".equals(level)) {
+      showJuniorVacancies(update);
+    } else if ("middle".equals(level)) {
+        showMiddleVacancies(update);
+    } else if ("senior".equals(level)) {
+      showSeniorVacancies(update);
     }
   }
 
@@ -56,31 +77,57 @@ public class VacanciesBot extends TelegramLongPollingBot {
     VacancyDto vacancy = vacancyService.get(id);
     String description = vacancy.getShortDescription();
     sendMessage.setText(description);
+    sendMessage.setReplyMarkup(getBackToVacanciesMenu());
     execute(sendMessage);
+  }
+
+  private ReplyKeyboard getBackToVacanciesMenu() {
+    List<InlineKeyboardButton> row = new ArrayList<>();
+
+    InlineKeyboardButton backToVacanciesMenuButton = new InlineKeyboardButton();
+    backToVacanciesMenuButton.setText("Back to vacancies");
+    backToVacanciesMenuButton.setCallbackData("backToVacancies");
+    row.add(backToVacanciesMenuButton);
+
+    InlineKeyboardButton backToStartMenuButton = new InlineKeyboardButton();
+    backToStartMenuButton.setText("Back to start menu");
+    backToStartMenuButton.setCallbackData("backToStartMenu");
+    row.add(backToStartMenuButton);
+
+    return new InlineKeyboardMarkup(List.of(row));
   }
 
   private void showJuniorVacancies(Update update) throws TelegramApiException {
     SendMessage sendMessage = new SendMessage();
     sendMessage.setText("Please choose vacancy:");
-    sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+    Long chatId = update.getCallbackQuery().getMessage().getChatId();
+    sendMessage.setChatId(chatId);
     sendMessage.setReplyMarkup(getJuniorVacanciesMenu());
     execute(sendMessage);
+
+    lastShownVacancyLevel.put(chatId, "junior");
   }
 
   private void showMiddleVacancies(Update update) throws TelegramApiException {
     SendMessage sendMessage = new SendMessage();
     sendMessage.setText("Please choose vacancy:");
-    sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+    Long chatId = update.getCallbackQuery().getMessage().getChatId();
+    sendMessage.setChatId(chatId);
     sendMessage.setReplyMarkup(getMIddleVacanciesMenu());
     execute(sendMessage);
+
+    lastShownVacancyLevel.put(chatId, "middle");
   }
 
   private void showSeniorVacancies(Update update) throws TelegramApiException {
     SendMessage sendMessage = new SendMessage();
     sendMessage.setText("Please choose vacancy:");
-    sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+    Long chatId = update.getCallbackQuery().getMessage().getChatId();
+    sendMessage.setChatId(chatId);
     sendMessage.setReplyMarkup(getSeniorVacanciesMenu());
     execute(sendMessage);
+
+    lastShownVacancyLevel.put(chatId, "senior");
   }
 
   private ReplyKeyboard getJuniorVacanciesMenu() {
