@@ -10,5 +10,4 @@ public class TelegramBotVacanciesApplication {
 		SpringApplication.run(TelegramBotVacanciesApplication.class, args);
 		System.out.println("Hello world");
 	}
-
 }
