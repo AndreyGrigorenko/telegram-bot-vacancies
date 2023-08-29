@@ -1,5 +1,6 @@
 package ua.hryhorenko.telegrambotvacancies;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -8,12 +9,17 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ua.hryhorenko.telegrambotvacancies.dto.VacancyDto;
+import ua.hryhorenko.telegrambotvacancies.service.VacancyService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class VacanciesBot extends TelegramLongPollingBot {
+  @Autowired
+  private VacancyService vacancyService;
+
   public VacanciesBot() {
     super("6148636781:AAGABws8jqh8eSj21p4guKih147171EzGnc");
   }
@@ -47,7 +53,9 @@ public class VacanciesBot extends TelegramLongPollingBot {
   private void showVacancyDescription(String id, Update update) throws TelegramApiException {
     SendMessage sendMessage = new SendMessage();
     sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
-    sendMessage.setText("Vacancy description for vacancy with id = " + id);
+    VacancyDto vacancy = vacancyService.get(id);
+    String description = vacancy.getShortDescription();
+    sendMessage.setText(description);
     execute(sendMessage);
   }
 
@@ -77,15 +85,14 @@ public class VacanciesBot extends TelegramLongPollingBot {
 
   private ReplyKeyboard getJuniorVacanciesMenu() {
     List<InlineKeyboardButton> row = new ArrayList<>();
-    InlineKeyboardButton maVacancy = new InlineKeyboardButton();
-    maVacancy.setText("Junior Java developer at MA");
-    maVacancy.setCallbackData("vacancyId=1");
-    row.add(maVacancy);
+    List<VacancyDto> vacancies = vacancyService.getJuniorVacancies();
 
-    InlineKeyboardButton googleVacancy = new InlineKeyboardButton();
-    googleVacancy.setText("Junior Java developer at Google");
-    googleVacancy.setCallbackData("vacancyId=2");
-    row.add(googleVacancy);
+    for (VacancyDto vacancy : vacancies) {
+      InlineKeyboardButton vacancyButton = new InlineKeyboardButton();
+      vacancyButton.setText(vacancy.getTitle());
+      vacancyButton.setCallbackData("vacancyId=" + vacancy.getId());
+      row.add(vacancyButton);
+    }
 
     InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
     keyboard.setKeyboard(List.of(row));
