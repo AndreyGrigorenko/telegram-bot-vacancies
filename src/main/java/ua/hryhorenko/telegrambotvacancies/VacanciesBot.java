@@ -20,6 +20,50 @@ public class VacanciesBot extends TelegramLongPollingBot {
 
   @Override
   public void onUpdateReceived(Update update) {
+    try {
+      if (update.getMessage() != null) {
+        handleStartCommand(update);
+      }
+
+      if (update.getCallbackQuery() != null) {
+        String callbackData = update.getCallbackQuery().getData();
+
+        if ("showJuniorVacancies".equals(callbackData)) {
+          showJuniorVacancies(update);
+        }
+      }
+    } catch (Exception ex) {
+        throw new RuntimeException("Can't sent message to user", ex);
+    }
+  }
+
+  private void showJuniorVacancies(Update update) throws TelegramApiException {
+    SendMessage sendMessage = new SendMessage();
+    sendMessage.setText("Please choose vacancy:");
+    sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+    sendMessage.setReplyMarkup(gerJuniorVacanciesMenu());
+    execute(sendMessage);
+  }
+
+  private ReplyKeyboard gerJuniorVacanciesMenu() {
+    List<InlineKeyboardButton> row = new ArrayList<>();
+    InlineKeyboardButton maVacancy = new InlineKeyboardButton();
+    maVacancy.setText("Junior Java developer at MA");
+    maVacancy.setCallbackData("vacancyId=1");
+    row.add(maVacancy);
+
+    InlineKeyboardButton googleVacancy = new InlineKeyboardButton();
+    googleVacancy.setText("Junior Java developer at Google");
+    googleVacancy.setCallbackData("vacancyId=1");
+    row.add(googleVacancy);
+
+    InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
+    keyboard.setKeyboard(List.of(row));
+
+    return keyboard;
+  }
+
+  private void handleStartCommand(Update update) {
     String text = update.getMessage().getText();
     System.out.println(text);
     SendMessage sendMessage = new SendMessage();
