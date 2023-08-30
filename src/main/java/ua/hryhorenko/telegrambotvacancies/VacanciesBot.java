@@ -104,6 +104,11 @@ public class VacanciesBot extends TelegramLongPollingBot {
     backToStartMenuButton.setCallbackData("backToStartMenu");
     row.add(backToStartMenuButton);
 
+    InlineKeyboardButton getChatGptButton = new InlineKeyboardButton();
+    getChatGptButton.setText("Get cover letter");
+    getChatGptButton.setUrl("https://chat.openai.com");
+    row.add(getChatGptButton);
+
     return new InlineKeyboardMarkup(List.of(row));
   }
 
@@ -141,42 +146,25 @@ public class VacanciesBot extends TelegramLongPollingBot {
   }
 
   private ReplyKeyboard getJuniorVacanciesMenu() {
-    List<InlineKeyboardButton> row = new ArrayList<>();
     List<VacancyDto> vacancies = vacancyService.getJuniorVacancies();
 
-    for (VacancyDto vacancy : vacancies) {
-      InlineKeyboardButton vacancyButton = new InlineKeyboardButton();
-      vacancyButton.setText(vacancy.getTitle());
-      vacancyButton.setCallbackData("vacancyId=" + vacancy.getId());
-      row.add(vacancyButton);
-    }
-
-    InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
-    keyboard.setKeyboard(List.of(row));
-
-    return keyboard;
+    return getVacanciesMenu(vacancies);
   }
 
   private ReplyKeyboard getMIddleVacanciesMenu() {
-    List<InlineKeyboardButton> row = new ArrayList<>();
     List<VacancyDto> vacancies = vacancyService.getMiddleVacancies();
 
-    for (VacancyDto vacancy : vacancies) {
-      InlineKeyboardButton vacancyButton = new InlineKeyboardButton();
-      vacancyButton.setText(vacancy.getTitle());
-      vacancyButton.setCallbackData("vacancyId=" + vacancy.getId());
-      row.add(vacancyButton);
-    }
-
-    InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
-    keyboard.setKeyboard(List.of(row));
-
-    return keyboard;
+    return getVacanciesMenu(vacancies);
   }
 
   private ReplyKeyboard getSeniorVacanciesMenu() {
-    List<InlineKeyboardButton> row = new ArrayList<>();
     List<VacancyDto> vacancies = vacancyService.getSeniorVacancies();
+
+    return getVacanciesMenu(vacancies);
+  }
+
+  private ReplyKeyboard getVacanciesMenu(List<VacancyDto> vacancies) {
+    List<InlineKeyboardButton> row = new ArrayList<>();
 
     for (VacancyDto vacancy : vacancies) {
       InlineKeyboardButton vacancyButton = new InlineKeyboardButton();
